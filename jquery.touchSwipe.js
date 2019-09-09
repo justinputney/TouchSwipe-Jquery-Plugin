@@ -466,6 +466,38 @@
     LEAVE_EV = useTouchEvents ? (SUPPORTS_POINTER ? 'mouseleave' : 'pointerleave') : 'mouseleave', //we manually detect leave on touch devices, so null event here
     CANCEL_EV = (SUPPORTS_POINTER ? (SUPPORTS_POINTER_IE10 ? 'MSPointerCancel' : 'pointercancel touchcancel') : 'touchcancel');
 
+    $.touchSwipe = this;
+
+    var dynamicEventUpdates = false;
+    if(dynamicEventUpdates && useTouchEvents){
+      $(window).on('pointerdown touchstart', function(e){
+        $.touchSwipe.updateEvents(e);
+      });
+    }
+
+    this.updateEvents = function(e){
+      var type = e.type;
+      $element.off(START_EV, touchStart);
+      $element.off(CANCEL_EV, touchCancel);
+      switch(type) {
+        case 'mousedown': 
+          //START_EV='mousedown',MOVE_EV ='mousemove',END_EV ='mouseup',LEAVE_EV ='mouseleave';
+          break;
+        case 'pointerdown':
+          START_EV='pointerdown',MOVE_EV ='pointermove',END_EV ='pointerup',LEAVE_EV ='mouseleave',CANCEL_EV='pointercancel';
+          break;
+        case 'MSPointerDown':
+          START_EV='MSPointerDown',MOVE_EV ='MSPointerMove',END_EV ='MSPointerUp',LEAVE_EV ='mouseleave',CANCEL_EV='MSPointerCancel'; 
+          break;
+        case 'touchstart':
+          START_EV='touchstart',MOVE_EV ='touchmove',END_EV ='touchend',LEAVE_EV =null,CANCEL_EV='touchcancel';
+          break;
+      }
+      if(type !== START_EV) { $(e.target).trigger(START_EV); }
+      $element.on(START_EV, touchStart);
+      $element.on(CANCEL_EV, touchCancel);
+      e.stopPropagation();
+    }
 
     //touch properties
     var distance = 0,
